@@ -1,0 +1,69 @@
+/* 기본 레이아웃 */
+body {
+    font-family: ui-sans-serif, system-ui;
+    margin: 0;
+}
+
+header,
+footer {
+    background: #111827;
+    color: #fff;
+    padding: 16px;
+}
+
+nav a {
+    color: #93c5fd;
+    margin-right: 12px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+main {
+    padding: 16px;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 2fr 1fr;
+}
+
+article,
+aside,
+section {
+    background: #f9fafb;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th,
+td {
+    border: 1px solid #e5e7eb;
+    padding: 6px;
+    text-align: center;
+}
+
+/* 섹션 제어 및 방명록 스타일 */
+.content-section {
+    display: none;
+}
+
+.active {
+    display: block !important;
+}
+
+#guestbook-list {
+    margin-top: 15px;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+}
+
+.post {
+    background: #fff;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
