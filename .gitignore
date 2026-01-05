@@ -1,0 +1,13 @@
+# Terraform 관련
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# 보안 관련
+*.pem
+.env
+
+# Node.js 관련
+node_modules/
+npm-debug.log

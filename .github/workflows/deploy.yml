@@ -1,0 +1,56 @@
+name: Deploy to Amazon EC2
+
+on:
+  push:
+    branches: [ "main" ] # main 브랜치에 푸시하면 자동 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 1. AWS 인증 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      # 2. ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # 3. 도커 이미지 빌드 및 ECR 푸시
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: cheers-app
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # 4. EC2에 SSH 접속 후 배포 실행
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}        # 43.203.42.190 가 들어갈 자리
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}     # .pem 키 내용 전체가 들어갈 자리
+          script: |
+            # ECR 로그인 정보 갱신
+            aws ecr get-login-password --region ap-northeast-2 | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            
+            # 기존 컨테이너 중지 및 삭제 (실패해도 무시)
+            sudo docker stop cheers || true
+            sudo docker rm cheers || true
+            
+            # 최신 이미지 받아오기
+            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/cheers-app:latest
+            
+            # 새 컨테이너 실행 (80포트로 접속하면 앱의 3000포트로 연결)
+            sudo docker run -d --name cheers -p 80:3000 ${{ steps.login-ecr.outputs.registry }}/cheers-app:latest
